@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AliSaleem\NovaDropzoneField;
 
+use AliSaleem\NovaDropzoneField\Http\Controllers\RemoveController;
+use AliSaleem\NovaDropzoneField\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Nova\Events\ServingNova;
@@ -11,11 +13,8 @@ use Laravel\Nova\Nova;
 
 class FieldServiceProvider extends ServiceProvider
 {
-    /**
-     * Bootstrap any application services.
-     *
-     * @return void
-     */
+    public const ROUTE = '/nova-dropzone';
+
     public function boot(): void
     {
         Nova::serving(function (ServingNova $event): void {
@@ -23,13 +22,12 @@ class FieldServiceProvider extends ServiceProvider
         });
     }
 
-    /**
-     * Register any application services.
-     *
-     * @return void
-     */
     public function register(): void
     {
-        Route::post(UploadController::ROUTE, UploadController::class);
+        Route::prefix(static::ROUTE)
+            ->group(function (): void {
+                Route::post('/', UploadController::class);
+                Route::delete('/', RemoveController::class);
+            });
     }
 }
