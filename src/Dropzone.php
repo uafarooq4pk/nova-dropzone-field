@@ -8,6 +8,7 @@ use AliSaleem\NovaDropzoneField\Support\DropzoneRule;
 use AliSaleem\NovaDropzoneField\Support\FillHandler;
 use Illuminate\Contracts\Validation\InvokableRule;
 use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -21,21 +22,22 @@ class Dropzone extends Field
     /** @var array */
     public $meta = [
         'options'  => [
-            'url'               => FieldServiceProvider::ROUTE,
-            'method'            => 'post',
-            'withCredentials'   => true,
-            'timeout'           => null,
-            'parallelUploads'   => 5,
-            'uploadMultiple'    => false,
-            'maxFilesize'       => 256,
-            'paramName'         => null,
-            'thumbnailWidth'    => 120,
-            'thumbnailHeight'   => 120,
-            'filesizeBase'      => 1024,
-            'maxFiles'          => null,
-            'acceptedFiles'     => null,
-            'acceptedMimeTypes' => null,
-            'addRemoveLinks'    => true,
+            'url'                   => FieldServiceProvider::ROUTE,
+            'method'                => 'post',
+            'withCredentials'       => true,
+            'timeout'               => null,
+            'parallelUploads'       => 5,
+            'uploadMultiple'        => false,
+            'maxFilesize'           => 256,
+            'paramName'             => null,
+            'thumbnailWidth'        => 120,
+            'thumbnailHeight'       => 120,
+            'filesizeBase'          => 1024,
+            'maxFiles'              => null,
+            'acceptedFiles'         => null,
+            'acceptedMimeTypes'     => null,
+            'addRemoveLinks'        => true,
+            'createImageThumbnails' => false,
         ],
         'key'      => null,
         'tempDisk' => null,
@@ -46,6 +48,9 @@ class Dropzone extends Field
      * @var array|callable|\Laravel\Nova\Fields\TValidationRules
      */
     public $dropzone_rules;
+
+    /** @var callable */
+    protected $destroyUsingCallback;
 
     public function __construct($name, $attribute = null, callable $resolveCallback = null)
     {
@@ -124,6 +129,19 @@ class Dropzone extends Field
             'handle'
         ]);
 
+        return $this;
+    }
+
+    public function destroyUsing(callable $destroyUsing): static
+    {
+        $this->destroyUsingCallback = $destroyUsing;
+
+        return $this;
+    }
+
+    public function destroy(Model $model, string $file): static
+    {
+        call_user_func($this->destroyUsingCallback, $model, $file, $this->attribute);
         return $this;
     }
 

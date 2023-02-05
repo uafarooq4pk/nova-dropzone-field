@@ -2,7 +2,7 @@
     <PanelItem :index="index" :field="field">
         <template #value>
             <template v-for="child in items">
-                <Tree :item="child"/>
+                <Tree :item="child" current="" @removeFile="removeFile"/>
             </template>
         </template>
     </PanelItem>
@@ -14,7 +14,38 @@ import Tree from "./Tree.vue";
 
 export default {
     components: {Tree},
-    methods: {value},
+    methods: {
+        value,
+        removeFile(data) {
+            const field = this.field
+            Nova.request()
+                .delete(this.field.options.url, {
+                    data: {
+                        resource_name: this.resourceName,
+                        resource_id: this.resourceId,
+                        file: data.file,
+                        attribute: this.field.attribute,
+                    }
+                })
+                .catch(() => Nova.$toasted.show('Error  deleting file', {type: 'error'}))
+                .then(() => {
+                    Nova.$toasted.show('Deleted file', {type: 'success'});
+                    this.removeFromList(data.file)
+                })
+        },
+        removeFromList(file) {
+
+            let index = this.field.displayedAs.indexOf(file)
+            if (index === -1) {
+                return this.field.displayedAs
+                    .filter(path => path.startsWith(file + '/'))
+                    .forEach(path => this.removeFromList(path))
+            }
+
+            this.field.displayedAs.splice(index, 1)
+        }
+
+    },
     props: ['index', 'resource', 'resourceName', 'resourceId', 'field'],
 
     computed: {
@@ -29,7 +60,6 @@ export default {
                             r[name] = {result: []};
                             r.result.push({name, children: r[name].result})
                         }
-
                         return r[name];
                     }, level)
                 })

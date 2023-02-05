@@ -43,6 +43,7 @@ export default {
             dropzone.options.previewsContainer = `#dz-${this.field.key}-previews`
 
             dropzone.on('sending', (file, xhr, formData) => {
+                xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector("meta[name='csrf-token']").getAttribute('content'))
                 formData.append('key', this.field.key);
                 formData.append('attribute', this.field.attribute);
                 formData.append('full_path', typeof file.fullPath === 'string' ? file.fullPath : '');
@@ -55,10 +56,8 @@ export default {
             })
 
             dropzone.on('removedfile', (file) => {
-                fetch(this.field.options.url, {
-                    method: 'DELETE',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
+                Nova.request()
+                    .put(this.field.options.url, {
                         key: this.field.key,
                         attribute: this.field.attribute,
                         name: file.name,
@@ -66,7 +65,6 @@ export default {
                         temp_path: typeof this.field.tempPath === 'string' ? this.field.tempPath : '',
                         temp_disk: typeof this.field.tempDisk === 'string' ? this.field.tempDisk : '',
                     })
-                })
             })
         },
 

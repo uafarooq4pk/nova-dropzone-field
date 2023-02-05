@@ -6,28 +6,18 @@ namespace AliSaleem\NovaDropzoneField\Http\Controllers;
 
 use AliSaleem\NovaDropzoneField\Http\Requests\RemoveRequest;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Storage;
+use Laravel\Nova\Fields\Field;
+use Laravel\Nova\Http\Requests\NovaRequest;
+use Laravel\Nova\Nova;
 
 class RemoveController
 {
-    public function __invoke(RemoveRequest $request): Response
+    public function __invoke(RemoveRequest $request, NovaRequest $novaRequest): Response
     {
-        cache()
-            ->lock('dropzone-upload', 10)
-            ->block(8, function () use ($request): void {
-                $key = "dropzone.{$request->key}";
-                $list = collect(cache()->get($key, []));
-                if (!$file = $list->pull($request->full_path ?: $request->name)) {
-                    return;
-                }
-                Storage::disk($request->temp_disk)->delete(
-                    collect([
-                        $request->path(),
-                        $file['name']
-                    ])->implode('/')
-                );
-                cache()->put($key, $list->toArray());
-            });
+        $model = Nova::modelInstanceForKey($request->resource_name)->findOrFail($request->resource_id);
+        collect(Nova::resourceInstanceForKey($request->resource_name)->detailFields($novaRequest))
+            ->first(fn (Field $field) => $field->attribute === $request->attribute)
+            ->destroy($model, $request->file);
 
         return response()->noContent();
     }
