@@ -30,8 +30,6 @@ class DropzoneRule implements Rule
             ->flatten()
             ->toArray();
 
-        ray($this->messages);
-
         return empty($this->messages);
     }
 
