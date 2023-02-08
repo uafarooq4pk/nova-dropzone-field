@@ -47,4 +47,8 @@ p:hover button.hidden {
 summary:hover + div {
     background-color: rgb(241,245,249);
 }
+
+.dark summary:hover + div {
+    background-color: rgb(51,65,85);
+}
 </style>
