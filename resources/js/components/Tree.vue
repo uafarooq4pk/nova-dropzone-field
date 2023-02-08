@@ -1,6 +1,6 @@
 <template>
     <details v-if="item.children.length" open>
-        <summary class="pl-4 hover:bg-gray-200 flex justify-between cursor-pointer">
+        <summary class="pl-4 hover:bg-gray-200 dark:hover:bg-gray-600 flex justify-between cursor-pointer">
             <span class="py-1 font-bold">{{ item.name }}</span>
             <button type="button" class="hidden px-4 py-1 hover:bg-red-400 hover:text-white" @click="removeThisFile()">Delete</button>
         </summary>
@@ -10,7 +10,7 @@
             </template>
         </div>
     </details>
-    <p v-else class="pl-4 hover:bg-gray-100 flex justify-between">
+    <p v-else class="pl-4 hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-between">
         <span class="py-1">{{ item.name }}</span>
         <button type="button" class="hidden px-4 py-1 hover:bg-red-400 hover:text-white" @click="removeThisFile()">Delete</button>
     </p>
