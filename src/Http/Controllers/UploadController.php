@@ -24,7 +24,7 @@ class UploadController
                 $file = $request->file($request->attribute);
                 $path = $file->storeAs(
                     $request->path(),
-                    Str::random(40).'.'.$file->getClientOriginalExtension(),
+                    $file->getClientOriginalName(),
                     $request->temp_disk
                 );
 

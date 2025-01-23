@@ -218,19 +218,33 @@ class Dropzone extends Field
 
     public function getUploadedFiles(string $key): Collection
     {
-        return collect(cache()->get("dropzone.{$key}", []))
-            ->map(fn (array $data) => new UploadedFile(
-                collect([
-                    rtrim(config("filesystems.disks.{$this->meta['tempDisk']}.root"), '/'),
-                    trim($this->meta['tempPath'] ?: '', '/'),
-                    $key,
-                    $data['name'],
-                ])
+        if(config("filesystems.disks.{$this->meta['tempDisk']}.driver") == 's3'){
+            return collect(cache()->get("dropzone.{$key}", []))
+                    ->map(fn (array $data) => collect([
+                        rtrim(config("filesystems.disks.{$this->meta['tempDisk']}.url")),
+                        trim($this->meta['tempPath'] ?: '', '/'),
+                        $key,
+                        $data['name'],
+                    ])
                     ->filter()
-                    ->implode('/'),
-                $data['originalName'],
-                $data['mimeType'],
-                test: true
-            ));
+                    ->implode('/'));
+        }else{
+            return collect(cache()->get("dropzone.{$key}", []))
+                ->map(fn (array $data) => new UploadedFile(
+                    collect([
+                        rtrim(config("filesystems.disks.{$this->meta['tempDisk']}.url"), '/'),
+                        trim($this->meta['tempPath'] ?: '', '/'),
+                        $key,
+                        $data['name'],
+                    ])
+                        ->filter()
+                        ->implode('/'),
+                    $data['originalName'],
+                    $data['mimeType'],
+                    test: true
+                ));
+        }
     }
+
+    
 }
