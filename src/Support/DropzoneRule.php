@@ -19,7 +19,7 @@ class DropzoneRule implements Rule
 
     public function passes($attribute, $value): bool
     {
-        if(config("filesystems.disks.{$this->meta['tempDisk']}.driver") == 's3'){
+        if(config("filesystems.default") == 's3'){
             return empty($this->messages);
         }else{
             $rules = $this->field->dropzone_rules;
