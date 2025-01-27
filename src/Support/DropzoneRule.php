@@ -19,18 +19,23 @@ class DropzoneRule implements Rule
 
     public function passes($attribute, $value): bool
     {
-        $rules = $this->field->dropzone_rules;
+        if(config("filesystems.disks.{$this->meta['tempDisk']}.driver") == 's3'){
+            return empty($this->messages);
+        }else{
+            $rules = $this->field->dropzone_rules;
+    
+            $this->messages = $this->field->getUploadedFiles($value)
+                ->map(fn (UploadedFile $file) => validator(['dropzone' => $file], ['dropzone' => $rules])->errors())
+                ->keyBy(fn ($_, string $file): string => str($file)->afterLast('/')->toString())
+                ->map(fn (MessageBag $messages, string $file) => collect($messages->get('dropzone'))
+                    ->map(fn ($message) => str($message)->replace('dropzone', "{$file} file")->toString())
+                    ->toArray())
+                ->flatten()
+                ->toArray();
+    
+            return empty($this->messages);
 
-        $this->messages = $this->field->getUploadedFiles($value)
-            ->map(fn (UploadedFile $file) => validator(['dropzone' => $file], ['dropzone' => $rules])->errors())
-            ->keyBy(fn ($_, string $file): string => str($file)->afterLast('/')->toString())
-            ->map(fn (MessageBag $messages, string $file) => collect($messages->get('dropzone'))
-                ->map(fn ($message) => str($message)->replace('dropzone', "{$file} file")->toString())
-                ->toArray())
-            ->flatten()
-            ->toArray();
-
-        return empty($this->messages);
+        }
     }
 
     public function message(): array
