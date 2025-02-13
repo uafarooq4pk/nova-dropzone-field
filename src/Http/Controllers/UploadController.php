@@ -24,14 +24,14 @@ class UploadController
                 $file = $request->file($request->attribute);
                 $path = $file->storeAs(
                     $request->path(),
-                    $file->getClientOriginalName(),
+                    $this->sanitizeFileName($file->getClientOriginalName()),
                     $request->temp_disk
                 );
 
                 $list = collect(cache()->get($key, []))
-                    ->put($request->full_path ?: $file->getClientOriginalName(), [
+                    ->put($request->full_path ?: $this->sanitizeFileName($file->getClientOriginalName()), [
                         'name' => str($path)->afterLast('/')->toString(),
-                        'originalName' => $file->getClientOriginalName(),
+                        'originalName' => $this->sanitizeFileName($file->getClientOriginalName()),
                         'mimeType' => $file->getClientMimeType(),
                     ]);
 
@@ -39,5 +39,24 @@ class UploadController
             });
 
         return response()->noContent();
+    }
+    private static function sanitizeFileName($filename)
+    {
+        // Split filename and extension
+        $info = pathinfo($filename);
+        $name = $info['filename'];
+        $extension = isset($info['extension']) ? '.' . $info['extension'] : '';
+
+        // Remove special characters and replace spaces with underscores
+        $name = preg_replace('/[^a-zA-Z0-9-]/', '_', $name);
+        
+        // Replace multiple consecutive underscores with a single underscore
+        $name = preg_replace('/_+/', '_', $name);
+        
+        // Remove leading/trailing underscores
+        $name = trim($name, '_');
+
+        // Combine name and extension
+        return $name . $extension;
     }
 }
